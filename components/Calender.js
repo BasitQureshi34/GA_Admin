@@ -1,53 +1,81 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
-const CalendarComponent = () => {
+const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+
+const CustomCalendar = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
+
+  const renderDays = () => {
+    const days = [];
+    const daysInCurrentMonth = daysInMonth(currentMonth, currentYear);
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+
+    // Add empty slots for days of previous month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(<View style={styles.day} key={`empty-${i}`} />);
+    }
+
+    // Add days of current month
+    for (let day = 1; day <= daysInCurrentMonth; day++) {
+      days.push(
+        <TouchableOpacity key={day} style={styles.day}>
+          <Text style={styles.dayText}>{day}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return days;
+  };
+
   return (
     <View style={styles.container}>
-      {/* Apply LinearGradient as the border */}
       <LinearGradient
-        colors={['#20A64B', '#FFDD00']} // Gradient colors
-        style={styles.gradientBorder} // Style for gradient border
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        colors={["#20A64B", "#FFDD00"]}
+        style={styles.gradientBorder}
       >
-        <View style={styles.innerContainer}>
-          <Calendar
-            style={styles.calendar}
-            current={'2024-11-01'}
-            minDate={'2024-01-01'}
-            maxDate={'2024-12-31'}
-            onDayPress={(day) => {
-              console.log('selected day', day);
-            }}
-            markedDates={{
-              '2024-11-10': { selected: true, marked: true, selectedColor: '#20A64B' },
-              '2024-11-11': { marked: true },
-              '2024-11-12': { marked: true, dotColor: 'yellow', activeOpacity: 0 },
-            }}
-            monthFormat={'MMMM,yyyy'}
-            theme={{
-              backgroundColor: '#20A64B',
-              calendarBackground: '#20252C',
-              textSectionTitleColor: '#b6c1cd',
-              selectedDayBackgroundColor: '#20A64B',
-              selectedDayTextColor: 'white',
-              todayTextColor: '#20A64B',
-              todayButtonFontWeight: 800,
-              dayTextColor: 'white',
-              textDisabledColor: '#d9e1e8',
-              dotColor: 'yellow',
-              selectedDotColor: 'white',
-              arrowColor: '#20A64B',
-              arrowStyle: '',
-              monthTextColor: 'white',
-              textDayFontFamily: 'Outfit',
-              textMonthFontFamily: 'Outfit',
-              textDayHeaderFontFamily: 'Outfit',
-            }}
-          />
+        <View style={styles.calendarContainer}>
+          {/* Header with month navigation */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={goToPreviousMonth}>
+              <Text style={styles.navText}>Prev</Text>
+            </TouchableOpacity>
+            <Text style={styles.monthText}>{`${currentDate.toLocaleString(
+              "default",
+              {
+                month: "long",
+              }
+            )} ${currentYear}`}</Text>
+            <TouchableOpacity onPress={goToNextMonth}>
+              <Text style={styles.navText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Weekday headers */}
+          <View style={styles.weekHeader}>
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+              (day, index) => (
+                <Text key={index} style={styles.weekDayText}>
+                  {day}
+                </Text>
+              )
+            )}
+          </View>
+
+          {/* Days */}
+          <View style={styles.daysContainer}>{renderDays()}</View>
         </View>
       </LinearGradient>
     </View>
@@ -59,20 +87,56 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
     marginBottom: 20,
     marginTop: 10,
-    // flex: 1, // Ensures the container takes full available height
   },
   gradientBorder: {
-    borderWidth: 3, // Adjust the thickness of the gradient border
-    borderRadius: 20, // Rounded corners for the border
-    padding: 5, // Padding inside the gradient border to make space for the content
+    borderWidth: 3,
+    borderRadius: 20,
+    padding: 5,
   },
-  innerContainer: {
-    backgroundColor: '#20252C', // The background color for the calendar content
-    borderRadius: 20, // Match the border radius of the gradient border
+  calendarContainer: {
+    backgroundColor: "#20252C",
+    borderRadius: 20,
+    padding: 10,
   },
-  calendar: {
-    borderRadius: 20, // Ensure the calendar has rounded corners too
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  navText: {
+    color: "white",
+    fontSize: 16,
+  },
+  monthText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  weekHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  weekDayText: {
+    color: "#b6c1cd",
+    fontSize: 14,
+    textAlign: "center",
+    width: "14.28%",
+  },
+  daysContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  day: {
+    width: "14.28%",
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dayText: {
+    color: "white",
+    fontSize: 16,
   },
 });
 
-export default CalendarComponent;
+export default CustomCalendar;
